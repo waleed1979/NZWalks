@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +12,7 @@ namespace NZWalks.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    
     public class RegionController : ControllerBase
     {
         private readonly NZWalksDbContext dbContext;
@@ -27,6 +29,7 @@ namespace NZWalks.API.Controllers
         // GET ALL REGIONS
         // GET: https://localhost:portnumber/api/region
         [HttpGet]
+        [Authorize(Roles ="Reader")]
         public async Task<IActionResult> GetAll()
         {
             //Get Data From Database - Domain Models
@@ -56,6 +59,7 @@ namespace NZWalks.API.Controllers
         //GET: https://localhost:portnumber/api/region/{id}
         [HttpGet]
         [Route("{id:Guid}")]
+        [Authorize(Roles = "Reader")]
         public async Task<IActionResult> GetById(Guid id) {
             //Get Region Domain Model From Database
             var regionDomain = await regionRespository.GetByIdAsync(id);
@@ -87,6 +91,8 @@ namespace NZWalks.API.Controllers
         //POST: https://localhost:portnumber/api/regions
 
         [HttpPost]
+        [Authorize(Roles = "Writer")]
+
         public async Task<IActionResult> Create([FromBody] AddRegionRequestDTO addRegionRequestDTO)
         {
             if (ModelState.IsValid)
@@ -129,6 +135,7 @@ namespace NZWalks.API.Controllers
         //PUT: https://localhost:portnumber/api/regions/{id}
         [HttpPut]
         [Route("{id:guid}")]
+        [Authorize(Roles = "Writer")]
         public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody]UpdateRegionRequestDTO updateRegionRequestDTO )
         {
             if (ModelState.IsValid)
@@ -175,6 +182,7 @@ namespace NZWalks.API.Controllers
 
         [HttpDelete]
         [Route("{id:guid}")]
+        [Authorize(Roles = "Writer")]
         public async Task<IActionResult> Delete([FromRoute] Guid id) 
         {
             var regionDomainModel = await regionRespository.DeleteAsync(id);
@@ -184,17 +192,7 @@ namespace NZWalks.API.Controllers
                 return NotFound();
             }
 
-            ////return deleted Region back
-            ////map Domain Model to DTO
-            //var regionDto = new RegionDto
-            //{
-            //    Id = regionDomainModel.Id,
-            //    Code = regionDomainModel.Code,
-            //    Name = regionDomainModel.Name,
-            //    RegionImageUrl = regionDomainModel.RegionImageUrl,
-            //};
-
-            // Map Domain Model to DTO
+           // Map Domain Model to DTO
             var regionDto = mapper.Map<RegionDto>(regionDomainModel);
 
             return Ok(regionDto);
